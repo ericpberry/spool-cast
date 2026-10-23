@@ -94,7 +94,9 @@ audio { display: none; }
 /* End board */
 .board { padding: 5.5vh 6vw; display: grid; grid-template-rows: auto auto 1fr; gap: 4vh; }
 .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.4vw; align-content: start; }
-.tc { background: var(--surface); border-radius: 2vh; padding: 3vh 2.6vh; display: grid; gap: 1.6vh; min-width: 0; outline: .5vh solid transparent; transition: outline-color .2s ease; }
+.tc { background: var(--surface); border-radius: 2vh; padding: 3vh 2.6vh; display: grid; gap: 1.6vh; min-width: 0; outline: .5vh solid transparent; transition: outline-color .2s ease;
+  border: 0; color: inherit; font: inherit; text-align: left; align-content: start; cursor: pointer; }
+.tc:focus { outline-color: var(--accent); }
 .tc.sel { outline-color: var(--accent); }
 .tc .s { font: 600 2vh/1 var(--body); letter-spacing: .06em; color: var(--secondary); }
 .tc .s.islive { color: var(--live); }

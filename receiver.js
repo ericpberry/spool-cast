@@ -219,9 +219,8 @@
     selected = 0;
     $("endSub").textContent = endCards.length ? "Live on Spool now · choose on your phone, or press OK to play" : `${m.posts} posts · pick another thread on your phone`;
     starting = null;
-    drawCards();
     show("end");
-    document.body.focus(); // so the remote's first press goes to the board (D-115)
+    drawCards(); // focuses the selected card (D-116)
   }
   /**
    * D-115: OK (or a tap) on the end board. The phone has to load the thread and voice its first post
@@ -244,12 +243,17 @@
   function drawCards() {
     const box = $("cards");
     box.replaceChildren();
+    // D-116: real buttons with the selected one focused, so the remote's OK presses it (a page with
+    // nothing focusable spent the first press on finding focus).
     endCards.forEach((t, i) => {
-      const c = el("div", "tc" + (i === selected ? " sel" : ""));
+      const c = el("button", "tc" + (i === selected ? " sel" : ""));
+      c.type = "button";
+      c.addEventListener("focus", () => { if (selected !== i) { selected = i; for (const [j, b] of [...box.children].entries()) b.classList.toggle("sel", j === i); } });
       c.append(el("div", "s" + (t.live ? " islive" : ""), t.live ? "● LIVE" : t.status.toUpperCase()), el("div", "t", t.headline), el("div", "w", `${t.author} · ${t.posts} posts`));
       c.addEventListener("click", () => startThread(t));
       box.append(c);
     });
+    if (screen === "end" || !$("end").hidden) box.children[selected]?.focus();
   }
 
   // ---- input: TV remote keys, smart display touch -------------------------------------------
@@ -260,9 +264,9 @@
     if (e.repeat || Date.now() - lastKey < 700) return;
     lastKey = Date.now();
     if (screen === "end" && endCards.length) {
-      if (e.key === "ArrowRight") { selected = Math.min(selected + 1, endCards.length - 1); drawCards(); }
-      else if (e.key === "ArrowLeft") { selected = Math.max(selected - 1, 0); drawCards(); }
-      else if (e.key === "Enter" || e.key === "Select" || e.key === "Accept") startThread(endCards[selected]);
+      if (e.key === "ArrowRight") { selected = Math.min(selected + 1, endCards.length - 1); drawCards(); e.preventDefault(); }
+      else if (e.key === "ArrowLeft") { selected = Math.max(selected - 1, 0); drawCards(); e.preventDefault(); }
+      else if (e.key === "Enter" || e.key === "Select" || e.key === "Accept") { startThread(endCards[selected]); e.preventDefault(); }
     } else if (screen === "post") {
       if (e.key === "ArrowRight") ask("next");
       else if (e.key === "ArrowLeft") ask("previous");
