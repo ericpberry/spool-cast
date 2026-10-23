@@ -1,9 +1,10 @@
 <!doctype html>
 <!--
-  Spool's Cast receiver (D-107). A static page the TV loads when Spool casts; published from the
-  private spool repo's receiver/ folder to the public ericpberry/spool-cast repo (GitHub Pages).
-  Posts, timings and audio come from the phone over the home network; nothing else is fetched
-  except Google's Cast receiver library.
+  Spool's Cast receiver (D-107, D-112). A static page the TV loads when Spool casts; published from
+  the private spool repo's receiver/ folder to the public ericpberry/spool-cast repo (GitHub Pages).
+  Posts and their timings come from the phone on Spool's Cast channel, audio from the phone over the
+  home network, post photos from Bluesky's image CDN. Nothing else is fetched except Google's Cast
+  receiver library. Add ?preview=post|photo|link|summary|caught|end|hub to see a state in a browser.
 -->
 <html lang="en">
 <head>
@@ -22,16 +23,59 @@
   </main>
 
   <main id="post" class="screen post" hidden>
-    <header class="top">
-      <img class="wordmark" src="wordmark.svg" alt="spool.">
-      <span id="live" class="live" hidden>LIVE</span>
-    </header>
-    <section class="head">
-      <h1 id="headline"></h1>
-      <p id="meta" class="meta"></p>
+    <section class="main">
+      <header class="top">
+        <img class="wordmark" src="wordmark.svg" alt="spool.">
+        <span id="live" class="live" hidden>LIVE</span>
+      </header>
+      <section class="head">
+        <h1 id="headline"></h1>
+        <p id="meta" class="meta"></p>
+        <p id="note" class="note" hidden></p>
+      </section>
+      <section id="body" class="body">
+        <div id="summary" class="summary" hidden>
+          <p class="label">Catching you up</p>
+          <ul id="points"></ul>
+        </div>
+        <div id="content" class="content">
+          <article id="text" class="text"></article>
+          <aside id="media" class="media" hidden></aside>
+        </div>
+      </section>
+      <div id="bar" class="bar"></div>
     </section>
-    <article id="text" class="text"></article>
+    <aside id="rail" class="rail">
+      <p class="label">Up next</p>
+      <div id="next"></div>
+      <p id="behind" class="behind"></p>
+    </aside>
+    <div id="legend" class="legend" hidden></div>
+    <div id="toast" class="toast" hidden></div>
     <span id="paused" class="paused" hidden>❚❚ Paused</span>
+    <nav id="touch" class="touch">
+      <button data-ask="previous" aria-label="Previous post">⏮</button>
+      <button data-ask="toggle" class="pp" aria-label="Play or pause">❚❚</button>
+      <button data-ask="next" aria-label="Next post">⏭</button>
+    </nav>
+  </main>
+
+  <main id="caught" class="screen center" hidden>
+    <img class="corner" src="wordmark.svg" alt="spool.">
+    <div>
+      <div class="pulse"></div>
+      <h2 class="big">You're caught up</h2>
+      <p id="caughtText" class="small"></p>
+    </div>
+  </main>
+
+  <main id="end" class="screen board" hidden>
+    <header class="top"><img class="wordmark" src="wordmark.svg" alt="spool."></header>
+    <section class="head">
+      <h1 id="endHead"></h1>
+      <p id="endSub" class="meta"></p>
+    </section>
+    <div id="cards" class="cards"></div>
   </main>
 
   <script src="receiver.js"></script>
