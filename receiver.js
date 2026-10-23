@@ -1,7 +1,7 @@
 // Spool's Cast receiver (D-107, D-112). Plays each post's audio from the phone and draws the thread the
 // way Spool would. The phone sends messages on Spool's channel (shapes in core/cast/TvMessages.kt):
 //   post     the post that's starting: text, sentence timings, headline, note, up next, behind live,
-//            legend, photos/link/quote, text scale, and whether it opens with the catch-up summary
+//            the thread glossary, photos/link/quote, text scale, and whether it opens with the catch-up summary
 //   status   new posts arrived: total and behind live
 //   caughtUp at the live edge, waiting for the next post
 //   end      a finished thread, with the listener's live threads to play next
@@ -53,8 +53,6 @@
     $("headline").textContent = m.headline || "";
     meta(m.index, m.total);
     $("live").hidden = !m.live;
-    $("note").hidden = !m.note;
-    $("note").textContent = m.note ? `“${m.note}”` : "";
 
     // The text, one span per sentence voiced from it.
     const text = m.text || "";
@@ -87,9 +85,7 @@
       }
     }
 
-    renderMedia(m);
-    renderRail(m);
-    renderLegend(m.legend || []);
+    renderSide(m);
     renderBar(m.index, m.total);
     show("post");
   }
@@ -98,43 +94,45 @@
     $("meta").textContent = [post && post.author, `Post ${index + 1} of ${total}`, post && post.postedAt].filter(Boolean).join(" · ");
   }
 
-  function renderMedia(m) {
-    const box = $("media");
-    box.replaceChildren();
+  /**
+   * D-117: the side column. A post with a photo shows it there, large, so the text keeps its full
+   * width; otherwise the thread's abbreviations (this post's first, marked), the post's link or quote
+   * card, the quoted status, and how far behind live.
+   */
+  function renderSide(m) {
     const images = m.images || [];
+    $("photo").hidden = !images.length;
+    $("post").classList.toggle("withphoto", images.length > 0);
+    $("info").hidden = images.length > 0;
     if (images.length) {
-      const img = el("img", "photo");
-      img.src = images[0].url;
-      img.alt = images[0].alt || "";
-      box.append(img);
-      if (images[0].alt) box.append(el("p", "alt", images[0].alt));
-      if (images.length > 1) box.append(el("p", "more", `+${images.length - 1} more`));
+      $("photoImg").src = images[0].url;
+      $("photoImg").alt = images[0].alt || "";
+      $("photoAlt").textContent = images[0].alt || "";
+      $("photoMore").textContent = images.length > 1 ? `+${images.length - 1} more` : "";
     }
+
+    const terms = m.glossary || [];
+    const dl = $("glossary");
+    dl.replaceChildren();
+    for (const t of terms) dl.append(el("dt", t.inPost ? "in" : null, t.short), el("dd", t.inPost ? "in" : null, t.long));
+    $("terms").hidden = !terms.length;
+
+    const cards = $("cardsSide");
+    cards.replaceChildren();
     if (m.link) {
       const card = el("div", "card");
       if (m.link.thumb) { const t = el("img"); t.src = m.link.thumb; t.alt = ""; card.append(t); }
       card.append(el("div", "t", m.link.title), el("div", "d", m.link.domain));
-      box.append(card);
+      cards.append(card);
     }
     if (m.quote) {
       const card = el("div", "card");
       card.append(el("div", "d", `Quoting ${m.quote.author}`), el("div", "q", m.quote.text));
-      box.append(card);
+      cards.append(card);
     }
-    const has = box.children.length > 0;
-    box.hidden = !has;
-    $("content").classList.toggle("withmedia", has);
-  }
 
-  function renderRail(m) {
-    const next = $("next");
-    next.replaceChildren();
-    for (const n of m.upNext || []) {
-      const d = el("div", "nx");
-      d.append(el("b", null, [n.n, n.time].filter(Boolean).join(" · ")), el("span", null, n.text));
-      next.append(d);
-    }
-    if (!(m.upNext || []).length) next.append(el("div", "nx", m.live ? "The next post plays when it's posted." : "This is the last post."));
+    $("note").hidden = !m.note;
+    $("note").textContent = m.note ? `“${m.note}”` : "";
     behind(m.behindPosts, m.behindMinutes, m.live);
   }
 
@@ -143,16 +141,9 @@
     b.classList.toggle("edge", !posts);
     if (posts > 0) b.textContent = `${posts} post${posts === 1 ? "" : "s"} behind live${minutes > 0 ? ` · ~${minutes} min` : ""}`;
     else b.textContent = live ? "At the live edge" : "";
+    $("stand").hidden = !b.textContent && $("note").hidden;
   }
 
-  function renderLegend(terms) {
-    const box = $("legend");
-    box.replaceChildren();
-    if (!terms.length) { box.hidden = true; return; }
-    box.append(el("p", "label", "In this post"));
-    for (const t of terms) { const d = el("div"); d.append(el("b", null, t.short), document.createTextNode(t.long)); box.append(d); }
-    box.hidden = false;
-  }
 
   function renderBar(index, total) {
     const bar = $("bar");
@@ -316,7 +307,7 @@
     if (id && id !== playingId) {
       playingId = id;
       endedFor = null;
-      if (post && post.id !== id) { spans = []; points = []; $("text").replaceChildren(); $("media").hidden = true; }
+      if (post && post.id !== id) { spans = []; points = []; $("text").replaceChildren(); $("photo").hidden = true; }
       ask("post", { post: id });
     }
   }
@@ -334,7 +325,7 @@
       }, 2000);
     }
   });
-  // Touch screens (Nest Hub) get buttons; TVs, whatever their viewport, get the rail and the remote.
+  // Touch screens (Nest Hub) get buttons; TVs, whatever their viewport, get the side column and the remote.
   context.addEventListener(cast.framework.system.EventType.READY, () => {
     const caps = (context.getDeviceCapabilities && context.getDeviceCapabilities()) || {};
     const System = cast.framework.system;
@@ -357,7 +348,9 @@
       index: 72, total: 102, postedAt: "1:54 PM", live: true, note: "Court is in recess until 2:15 PM", text,
       sentences: sentences(text, ["PBS: I have to go, I have a whole afternoon of hearings.", "If you file by Wednesday, file by Wednesday.", "If you feel you can't respond, tell me.", "DM/KS: Understood.", "Hearing adjourned."]),
       upNext: [{ n: 74, time: "3:46 PM", text: "Clerk's Notes for today's (Sept. 14) hearing: not entirely clear what the scope of the Government's commitment is…" }, { n: 75, time: "3:52 PM", text: "Here's the docket entry for the briefing schedule." }],
-      behindPosts: 29, behindMinutes: 14, legend: [{ short: "PBS", long: "Judge Patti B. Saris" }, { short: "DM", long: "Dan Mitchell" }], scale: 1,
+      behindPosts: 29, behindMinutes: 14, scale: 1,
+      glossary: [{ short: "PBS", long: "Judge Patti B. Saris", inPost: true }, { short: "DM", long: "Dan Mitchell", inPost: true }, { short: "KS", long: "Kate Smith", inPost: true },
+        { short: "CLR", long: "Cultural Landscape Report" }, { short: "DOI", long: "Dept of Interior" }, { short: "ICE", long: "Immigration and Customs Enforcement" }],
     };
     const photoText = "Sketch from the courtroom: Gorsuch leaning in during the Solicitor General's rebuttal.";
     const photo = Object.assign({}, base, {

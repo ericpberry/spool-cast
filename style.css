@@ -26,8 +26,8 @@ audio { display: none; }
 .wordmark-big { height: 12vh; }
 .hint { margin: 0; font-size: 2.6vh; color: var(--secondary); }
 
-/* Post: the main column and the up-next rail */
-.post { display: grid; grid-template-columns: minmax(0, 1fr) 27%; }
+/* Post: the main column and the side column (D-117) */
+.post { display: grid; grid-template-columns: minmax(0, 1fr) 34%; }
 .main { padding: 5.5vh 3.5vw 4.5vh 6vw; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 2.6vh; min-width: 0; min-height: 0; }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 2vw; }
 .wordmark { height: 4.2vh; }
@@ -35,11 +35,10 @@ audio { display: none; }
 .live::before { content: ""; width: 1.1vh; height: 1.1vh; border-radius: 50%; background: #fff; }
 .head h1 { margin: 0; font: 700 calc(3.6vh * var(--scale))/1.2 var(--display); color: var(--tertiary); text-wrap: balance; }
 .meta { margin: 1.1vh 0 0; font: 400 2.3vh/1.3 var(--mono); color: var(--secondary); }
-.note { display: inline-block; margin: 1.4vh 0 0; font-size: 2.3vh; color: var(--ink); background: var(--chip); border-radius: 1.2vh; padding: 1vh 1.8vh; }
+.note { margin: 0; font-size: 2.4vh; line-height: 1.4; color: var(--ink); }
 
 .body { position: relative; overflow: hidden; min-height: 0; }
-.content { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3vw; align-items: start; height: 100%; }
-.content.withmedia { grid-template-columns: minmax(0, 1fr) 40%; }
+.content { height: 100%; }
 .text { font: 600 calc(5.2vh * var(--scale))/1.42 var(--body); overflow: hidden; height: 100%; }
 .text .inner { transition: transform .5s ease; }
 .text .s { color: var(--upcoming); transition: color .25s ease, background-color .25s ease; border-radius: .6vh; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
@@ -48,10 +47,23 @@ audio { display: none; }
 .text .plain { color: var(--upcoming); }
 .text.small { font-size: calc(4.2vh * var(--scale)); }
 
-.media { display: grid; gap: 1.6vh; align-content: start; }
-.media img.photo { width: 100%; max-height: 52vh; object-fit: contain; border-radius: 1.4vh; background: var(--surface); }
-.media .more { font: 400 2vh/1 var(--mono); color: var(--secondary); }
-.media .alt { font-size: 1.9vh; color: var(--secondary); line-height: 1.35; }
+/* The side column (D-117) */
+.side { background: var(--surface); border-left: 1px solid var(--rule); padding: 5.5vh 3vw 4.5vh 2.6vw; min-width: 0; min-height: 0; overflow: hidden; }
+.info { display: grid; gap: 4vh; align-content: start; }
+.info section, .cardsSide { display: grid; gap: 1.6vh; }
+#glossary { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1.2vh 1.6vw; font-size: 2.3vh; line-height: 1.3; }
+#glossary dt { font-weight: 600; color: var(--secondary); }
+#glossary dd { margin: 0; color: var(--secondary); }
+#glossary .in { color: var(--ink); }
+#glossary dt.in::before { content: ""; display: inline-block; width: 1vh; height: 1vh; border-radius: 50%; background: var(--accent); margin-right: 1vh; vertical-align: .3vh; }
+/* A photo post: the photo gets about half the screen, centered, caption beneath; the text keeps its own column. */
+.post.withphoto { grid-template-columns: minmax(0, 1fr) 48%; }
+.post.withphoto .side { padding: 4vh 3vw; }
+.photo { margin: 0; height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 1.6vh; }
+.photo img { width: 100%; max-height: 80vh; object-fit: contain; border-radius: 1.4vh; }
+.photo figcaption { font-size: 2vh; color: var(--secondary); line-height: 1.35; }
+.photo .more { margin: 0; font: 400 2vh/1 var(--mono); color: var(--secondary); }
+.side .card { background: var(--chip); }
 .card { background: var(--surface); border-radius: 1.6vh; padding: 2vh 2.2vh; display: grid; gap: 1vh; }
 .card img { width: 100%; max-height: 22vh; object-fit: cover; border-radius: 1vh; }
 .card .t { font: 700 2.6vh/1.25 var(--display); }
@@ -70,17 +82,11 @@ audio { display: none; }
 .bar i.p { background: var(--upcoming); }
 .bar i.c { background: var(--accent); height: 100%; }
 
-.rail { background: var(--surface); border-left: 1px solid var(--rule); padding: 5.5vh 2.6vw 4.5vh; display: grid; align-content: start; gap: 2.2vh; min-width: 0; }
-.nx { display: grid; gap: .8vh; padding-bottom: 2vh; border-bottom: 1px solid var(--rule); font-size: 2.3vh; line-height: 1.4; color: var(--tertiary); }
-.nx b { font: 400 1.9vh/1 var(--mono); color: var(--secondary); }
 .behind { margin: 0; font: 600 2.4vh/1.35 var(--body); color: var(--live); }
 .behind.edge { color: var(--accent); }
 
-.legend { position: absolute; left: 6vw; bottom: 9vh; max-width: 40vw; background: var(--chip); border-radius: 1.6vh; padding: 1.8vh 2.2vh; display: grid; gap: 1vh; box-shadow: 0 1vh 4vh rgba(0,0,0,.4); }
-.legend div { font-size: 2.1vh; color: var(--tertiary); }
-.legend b { color: var(--ink); font-weight: 600; display: inline-block; min-width: 7vh; }
-.toast { position: absolute; left: 36.5%; top: 4vh; transform: translateX(-50%); background: var(--ink); color: var(--ground); font: 600 2.3vh/1 var(--body); padding: 1.4vh 2.8vh; border-radius: 99px; }
-.paused { position: absolute; right: 30vw; bottom: 5vh; font: 600 2.4vh/1 var(--body); background: var(--chip); padding: 1.4vh 2.4vh; border-radius: 99px; }
+.toast { position: absolute; left: 33%; top: 4vh; transform: translateX(-50%); background: var(--ink); color: var(--ground); font: 600 2.3vh/1 var(--body); padding: 1.4vh 2.8vh; border-radius: 99px; }
+.paused { position: absolute; right: 37vw; bottom: 5vh; font: 600 2.4vh/1 var(--body); background: var(--chip); padding: 1.4vh 2.4vh; border-radius: 99px; }
 .touch { display: none; }
 
 /* Caught up */
@@ -104,10 +110,10 @@ audio { display: none; }
 .tc .w { font-size: 2.2vh; color: var(--secondary); }
 .board .empty { margin: 0; font-size: 3vh; color: var(--secondary); }
 
-/* Touch screens (Nest Hub): no rail, buttons for the post. Set from the device's capabilities, not the
+/* Touch screens (Nest Hub): no side column, buttons for the post. Set from the device's capabilities, not the
    viewport: TVs can report one as small as 960x540 (D-113). */
 body.touch .post { grid-template-columns: minmax(0, 1fr); }
-body.touch .rail, body.touch .legend { display: none !important; }
+body.touch .side { display: none !important; }
 body.touch .main { padding: 4vh 5vw 15vh; }
 body.touch .text { font-size: calc(6vh * var(--scale)); }
 body.touch .touch { display: flex; position: absolute; left: 0; right: 0; bottom: 3vh; justify-content: center; gap: 8vw; }

@@ -31,7 +31,6 @@
       <section class="head">
         <h1 id="headline"></h1>
         <p id="meta" class="meta"></p>
-        <p id="note" class="note" hidden></p>
       </section>
       <section id="body" class="body">
         <div id="summary" class="summary" hidden>
@@ -40,17 +39,31 @@
         </div>
         <div id="content" class="content">
           <article id="text" class="text"></article>
-          <aside id="media" class="media" hidden></aside>
         </div>
       </section>
       <div id="bar" class="bar"></div>
     </section>
-    <aside id="rail" class="rail">
-      <p class="label">Up next</p>
-      <div id="next"></div>
-      <p id="behind" class="behind"></p>
+    <!-- D-117: the side column holds the post's photo when it has one, else what's secondary:
+         the thread's abbreviations, link and quote cards, the quoted status, and behind live. -->
+    <aside id="side" class="side">
+      <figure id="photo" class="photo" hidden>
+        <img id="photoImg" alt="">
+        <figcaption id="photoAlt"></figcaption>
+        <p id="photoMore" class="more"></p>
+      </figure>
+      <div id="info" class="info">
+        <section id="terms" hidden>
+          <p class="label">In this thread</p>
+          <dl id="glossary"></dl>
+        </section>
+        <div id="cardsSide" class="cardsSide"></div>
+        <section id="stand">
+          <p class="label">Where things stand</p>
+          <p id="note" class="note" hidden></p>
+          <p id="behind" class="behind"></p>
+        </section>
+      </div>
     </aside>
-    <div id="legend" class="legend" hidden></div>
     <div id="toast" class="toast" hidden></div>
     <span id="paused" class="paused" hidden>❚❚ Paused</span>
     <nav id="touch" class="touch">
