@@ -347,7 +347,6 @@
       type: "post", headline: "First Circuit rules on mandatory detention for non-criminal aliens", author: "John Hawkinson",
       index: 72, total: 102, postedAt: "1:54 PM", live: true, note: "Court is in recess until 2:15 PM", text,
       sentences: sentences(text, ["PBS: I have to go, I have a whole afternoon of hearings.", "If you file by Wednesday, file by Wednesday.", "If you feel you can't respond, tell me.", "DM/KS: Understood.", "Hearing adjourned."]),
-      upNext: [{ n: 74, time: "3:46 PM", text: "Clerk's Notes for today's (Sept. 14) hearing: not entirely clear what the scope of the Government's commitment is…" }, { n: 75, time: "3:52 PM", text: "Here's the docket entry for the briefing schedule." }],
       behindPosts: 29, behindMinutes: 14, scale: 1,
       glossary: [{ short: "PBS", long: "Judge Patti B. Saris", inPost: true }, { short: "DM", long: "Dan Mitchell", inPost: true }, { short: "KS", long: "Kate Smith", inPost: true },
         { short: "CLR", long: "Cultural Landscape Report" }, { short: "DOI", long: "Dept of Interior" }, { short: "ICE", long: "Immigration and Customs Enforcement" }],
