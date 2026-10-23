@@ -1,0 +1,44 @@
+/* Spool's TV page: Spool's dark palette and type (docs/SPEC.md Design tokens), sized for a TV at 1920x1080 or 1280x720. */
+@font-face { font-family: "Bricolage Grotesque"; src: url("fonts/bricolage_grotesque.ttf") format("truetype"); font-weight: 200 800; }
+@font-face { font-family: "Instrument Sans"; src: url("fonts/instrument_sans.ttf") format("truetype"); font-weight: 400 700; }
+@font-face { font-family: "IBM Plex Mono"; src: url("fonts/ibm_plex_mono_regular.ttf") format("truetype"); font-weight: 400; }
+
+:root {
+  --ground: #0E0F11; --surface: #1A1C20; --chip: #26282D; --rule: #3A3C41;
+  --ink: #F2F2F0; --secondary: #9A9DA3; --tertiary: #C4C6CB; --upcoming: #8E9197;
+  --accent: #5EEAD4; --highlight: rgba(94, 234, 212, .28); --live: #FF6B5E;
+  --display: "Bricolage Grotesque", sans-serif;
+  --body: "Instrument Sans", sans-serif;
+  --mono: "IBM Plex Mono", monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--ground); color: var(--ink); font-family: var(--body); overflow: hidden; }
+[hidden] { display: none !important; }
+audio { display: none; }
+
+/* 5% safe margins: TVs can crop the edges. */
+.screen { position: absolute; inset: 0; padding: 5.5vh 6vw; }
+
+.idle { display: grid; place-content: center; justify-items: center; gap: 3vh; }
+.wordmark-big { height: 12vh; }
+.hint { margin: 0; font-size: 2.6vh; color: var(--secondary); }
+
+.post { display: grid; grid-template-rows: auto auto 1fr; gap: 3vh; }
+.top { display: flex; justify-content: space-between; align-items: center; }
+.wordmark { height: 4.4vh; }
+.live { display: inline-flex; align-items: center; gap: 1vh; font: 600 2.2vh/1 var(--body); letter-spacing: .08em; color: #fff; background: var(--live); padding: 1vh 1.8vh; border-radius: 99px; }
+.live::before { content: ""; width: 1.2vh; height: 1.2vh; border-radius: 50%; background: #fff; }
+.head h1 { margin: 0; font: 700 3.8vh/1.2 var(--display); color: var(--tertiary); }
+.meta { margin: 1.2vh 0 0; font: 400 2.4vh/1.3 var(--mono); color: var(--secondary); }
+
+/* The post: big, with the sentence being read highlighted. Long posts scroll as reading moves down. */
+.text { font: 600 5.4vh/1.42 var(--body); overflow: hidden; position: relative; }
+.text .inner { transition: transform .5s ease; }
+.text .s { color: var(--upcoming); transition: color .25s ease, background-color .25s ease; border-radius: .6vh; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.text .s.said { color: var(--ink); }
+.text .s.now { color: var(--ink); background: var(--highlight); }
+.text .plain { color: var(--upcoming); }
+
+.paused { position: absolute; right: 6vw; bottom: 6vh; font: 600 2.6vh/1 var(--body); background: var(--chip); padding: 1.4vh 2.4vh; border-radius: 99px; }
+
+@media (prefers-reduced-motion: reduce) { .text .inner, .text .s { transition: none; } }

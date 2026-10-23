@@ -1,0 +1,39 @@
+<!doctype html>
+<!--
+  Spool's Cast receiver (D-107). A static page the TV loads when Spool casts; published from the
+  private spool repo's receiver/ folder to the public ericpberry/spool-cast repo (GitHub Pages).
+  Posts, timings and audio come from the phone over the home network; nothing else is fetched
+  except Google's Cast receiver library.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spool</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+</head>
+<body>
+  <audio id="audio"></audio>
+
+  <main id="idle" class="screen idle">
+    <img class="wordmark-big" src="wordmark.svg" alt="spool.">
+    <p class="hint">Ready to play from Spool on your phone</p>
+  </main>
+
+  <main id="post" class="screen post" hidden>
+    <header class="top">
+      <img class="wordmark" src="wordmark.svg" alt="spool.">
+      <span id="live" class="live" hidden>LIVE</span>
+    </header>
+    <section class="head">
+      <h1 id="headline"></h1>
+      <p id="meta" class="meta"></p>
+    </section>
+    <article id="text" class="text"></article>
+    <span id="paused" class="paused" hidden>❚❚ Paused</span>
+  </main>
+
+  <script src="receiver.js"></script>
+</body>
+</html>
