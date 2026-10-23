@@ -101,17 +101,15 @@ audio { display: none; }
 .tc .w { font-size: 2.2vh; color: var(--secondary); }
 .board .empty { margin: 0; font-size: 3vh; color: var(--secondary); }
 
-/* Smart displays (Nest Hub, 1024x600): no rail, touch buttons for the post. */
-@media (max-height: 640px) {
-  .post { grid-template-columns: minmax(0, 1fr); }
-  .rail, .legend { display: none !important; }
-  .main { padding: 4vh 5vw 13vh; }
-  .text { font-size: calc(6vh * var(--scale)); }
-  .touch { display: flex; position: absolute; left: 0; right: 0; bottom: 3vh; justify-content: center; gap: 8vw; }
-  .touch button { background: none; border: 0; color: var(--ink); font-size: 6vh; width: 11vh; height: 11vh; border-radius: 50%; }
-  .touch .pp { background: var(--accent); color: var(--ground); font-size: 4.4vh; }
-  .paused { right: 5vw; bottom: auto; top: 4vh; }
-  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+/* Touch screens (Nest Hub): no rail, buttons for the post. Set from the device's capabilities, not the
+   viewport: TVs can report one as small as 960x540 (D-113). */
+body.touch .post { grid-template-columns: minmax(0, 1fr); }
+body.touch .rail, body.touch .legend { display: none !important; }
+body.touch .main { padding: 4vh 5vw 15vh; }
+body.touch .text { font-size: calc(6vh * var(--scale)); }
+body.touch .touch { display: flex; position: absolute; left: 0; right: 0; bottom: 3vh; justify-content: center; gap: 8vw; }
+body.touch .touch button { background: none; border: 0; color: var(--ink); font-size: 6vh; width: 11vh; height: 11vh; border-radius: 50%; }
+body.touch .touch .pp { background: var(--accent); color: var(--ground); font-size: 4.4vh; }
+body.touch .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 @media (prefers-reduced-motion: reduce) { .text .inner, .text .s, .pulse { transition: none; animation: none; } }

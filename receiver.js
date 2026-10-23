@@ -23,6 +23,8 @@
   const now = () => (player ? player.getCurrentTimeSec() : ((Date.now() / 1000) % 12));
 
   let post = null;     // the last post message
+  let playingId = null; // the playlist item the TV is playing (D-113)
+  let endedFor = null;  // the item whose finish was already reported
   let spans = [];      // [{ el, start, end }] for the post's sentences
   let points = [];     // [{ el, start, end }] for the catch-up summary
   let firstSourced = 0;
@@ -44,6 +46,7 @@
   // ---- post ------------------------------------------------------------------------------
 
   function renderPost(m) {
+    if (playingId && m.id && m.id !== playingId) return; // a late message for a post that's no longer playing (D-113)
     post = m;
     document.documentElement.style.setProperty("--scale", m.scale || 1);
     $("headline").textContent = m.headline || "";
@@ -228,7 +231,11 @@
 
   // ---- input: TV remote keys, smart display touch -------------------------------------------
 
+  let lastKey = 0;
   document.addEventListener("keydown", (e) => {
+    // D-113: held keys repeat and some remotes send a key twice: one skip per press, at most every 0.7 s.
+    if (e.repeat || Date.now() - lastKey < 700) return;
+    lastKey = Date.now();
     if (screen === "end" && endCards.length) {
       if (e.key === "ArrowRight") { selected = Math.min(selected + 1, endCards.length - 1); drawCards(); }
       else if (e.key === "ArrowLeft") { selected = Math.max(selected - 1, 0); drawCards(); }
@@ -239,6 +246,12 @@
     }
   });
   for (const b of document.querySelectorAll("#touch button")) b.addEventListener("click", () => ask(b.dataset.ask));
+  function setPaused(paused) {
+    $("paused").hidden = !paused || document.body.classList.contains("touch");
+    const pp = document.querySelector("#touch .pp");
+    pp.textContent = paused ? "▶" : "❚❚";
+    pp.setAttribute("aria-label", paused ? "Play" : "Pause");
+  }
 
   function onMessage(m) {
     if (!m || !m.type) return;
@@ -264,8 +277,39 @@
     onMessage(typeof event.data === "string" ? JSON.parse(event.data) : event.data);
   });
   const Events = cast.framework.events.EventType;
-  player.addEventListener(Events.PAUSE, () => { $("paused").hidden = false; });
-  for (const ev of [Events.PLAY, Events.PLAYING]) player.addEventListener(ev, () => { $("paused").hidden = true; });
+  player.addEventListener(Events.PAUSE, () => setPaused(true));
+  for (const ev of [Events.PLAY, Events.PLAYING]) player.addEventListener(ev, () => setPaused(false));
+
+  // D-113: the TV, not the phone, knows when a post starts and when the last one ends. A new post
+  // clears the old one's highlight and asks the phone for it; the last one finishing asks for the
+  // caught-up screen or the end board.
+  function onStatus() {
+    const media = player.getMediaInformation();
+    const id = media && media.customData && media.customData.mediaId;
+    if (id && id !== playingId) {
+      playingId = id;
+      endedFor = null;
+      if (post && post.id !== id) { spans = []; points = []; $("text").replaceChildren(); $("media").hidden = true; }
+      ask("post", { post: id });
+    }
+  }
+  player.addEventListener(Events.PLAYER_LOAD_COMPLETE, onStatus);
+  player.addEventListener(Events.MEDIA_STATUS, (e) => {
+    onStatus();
+    const st = e.mediaStatus;
+    if (st && st.playerState === "IDLE" && st.idleReason === "FINISHED" && endedFor !== playingId) {
+      endedFor = playingId;
+      ask("ended");
+    }
+  });
+  // Touch screens (Nest Hub) get buttons; TVs, whatever their viewport, get the rail and the remote.
+  context.addEventListener(cast.framework.system.EventType.READY, () => {
+    const caps = (context.getDeviceCapabilities && context.getDeviceCapabilities()) || {};
+    const System = cast.framework.system;
+    const touchKey = System.DeviceCapabilities && System.DeviceCapabilities.TOUCH_INPUT_SUPPORTED;
+    const touch = (touchKey && caps[touchKey]) || caps.touch_input_supported || matchMedia("(any-pointer: coarse)").matches;
+    document.body.classList.toggle("touch", !!touch);
+  });
   const Command = cast.framework.messages.Command;
   player.setSupportedMediaCommands(Command.ALL_BASIC_MEDIA | Command.QUEUE_NEXT | Command.QUEUE_PREV, true);
   // Waiting at the live edge is idle time for Cast; keep the page up while the phone is connected.
@@ -299,6 +343,7 @@
       { root: "b", headline: "City Council returns with livestream options", author: "John Hawkinson", posts: 37, status: "LIVE", live: true },
       { root: "c", headline: "Supreme Court hears arguments on tariff powers", author: "Molly Roberts", posts: 191, status: "Quiet 34 min", live: false },
     ] };
+    if (state === "hub") document.body.classList.add("touch");
     if (state === "post" || state === "hub") { onMessage(base); if (state === "post") setTimeout(() => toast("3 new posts"), 50); }
     else if (state === "photo") onMessage(photo);
     else if (state === "link") onMessage(link);
