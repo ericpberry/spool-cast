@@ -48,9 +48,11 @@ audio { display: none; }
 .text.small { font-size: calc(4.2vh * var(--scale)); }
 
 /* The side column (D-117) */
-.side { background: var(--surface); border-left: 1px solid var(--rule); padding: 5.5vh 3vw 4.5vh 2.6vw; min-width: 0; min-height: 0; overflow: hidden; }
+.side { background: var(--surface); border-left: 1px solid var(--rule); padding: 5.5vh 3vw 4.5vh 2.6vw; min-width: 0; min-height: 0; overflow: hidden;
+  display: flex; flex-direction: column; gap: 4vh; }
 .info { display: grid; gap: 4vh; align-content: start; }
-.info section, .cardsSide { display: grid; gap: 1.6vh; }
+.info section, .cardsSide, .stand { display: grid; gap: 1.6vh; }
+.stand { flex: none; }
 #glossary { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1.2vh 1.6vw; font-size: 2.3vh; line-height: 1.3; }
 #glossary dt { font-weight: 600; color: var(--secondary); }
 #glossary dd { margin: 0; color: var(--secondary); }
@@ -59,8 +61,8 @@ audio { display: none; }
 /* A photo post: the photo gets about half the screen, centered, caption beneath; the text keeps its own column. */
 .post.withphoto { grid-template-columns: minmax(0, 1fr) 48%; }
 .post.withphoto .side { padding: 4vh 3vw; }
-.photo { margin: 0; height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 1.6vh; }
-.photo img { width: 100%; max-height: 80vh; object-fit: contain; border-radius: 1.4vh; }
+.photo { margin: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: 1.6vh; }
+.photo img { width: 100%; min-height: 0; max-height: 100%; object-fit: contain; border-radius: 1.4vh; }
 .photo figcaption { font-size: 2vh; color: var(--secondary); line-height: 1.35; }
 .photo .more { margin: 0; font: 400 2vh/1 var(--mono); color: var(--secondary); }
 .side .card { background: var(--chip); }
