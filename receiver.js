@@ -298,8 +298,13 @@
     onStatus();
     const st = e.mediaStatus;
     if (st && st.playerState === "IDLE" && st.idleReason === "FINISHED" && endedFor !== playingId) {
-      endedFor = playingId;
-      ask("ended");
+      // D-114: skipping reports the skipped post as finished for a moment before the next one loads.
+      // Only a finish that's still true 2 s later, with the same post, is the end of the playlist.
+      const was = playingId;
+      setTimeout(() => {
+        const idle = player.getPlayerState() === cast.framework.messages.PlayerState.IDLE;
+        if (idle && playingId === was && endedFor !== was) { endedFor = was; ask("ended"); }
+      }, 2000);
     }
   });
   // Touch screens (Nest Hub) get buttons; TVs, whatever their viewport, get the rail and the remote.
