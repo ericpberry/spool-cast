@@ -37,10 +37,15 @@
     for (const id of ["idle", "post", "caught", "end"]) $(id).hidden = id !== name;
   }
 
+  // D-120: the phone is the sender that last spoke on Spool's channel. The page answers only it, so
+  // another device that joins the session doesn't hear what's playing; until the phone has spoken
+  // (or if it's gone), every sender.
+  let phone = null;
   function ask(type, extra) {
     const msg = Object.assign({ type }, extra || {});
-    if (context) context.sendCustomMessage(NAMESPACE, undefined, msg);
-    else console.log("ask", msg);
+    if (!context) return console.log("ask", msg);
+    const to = phone && context.getSenders().some((s) => s.id === phone) ? phone : undefined;
+    context.sendCustomMessage(NAMESPACE, to, msg);
   }
 
   // ---- post ------------------------------------------------------------------------------
@@ -292,7 +297,10 @@
     return;
   }
   context.addCustomMessageListener(NAMESPACE, (event) => {
-    onMessage(typeof event.data === "string" ? JSON.parse(event.data) : event.data);
+    let m = event.data;
+    if (typeof m === "string") { try { m = JSON.parse(m); } catch (e) { return; } }
+    if (event.senderId) phone = event.senderId;
+    onMessage(m);
   });
   const Events = cast.framework.events.EventType;
   player.addEventListener(Events.PAUSE, () => setPaused(true));
