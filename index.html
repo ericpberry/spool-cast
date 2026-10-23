@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
 </head>
-<body>
+<body tabindex="-1">
   <audio id="audio"></audio>
 
   <main id="idle" class="screen idle">
@@ -64,7 +64,7 @@
     <img class="corner" src="wordmark.svg" alt="spool.">
     <div>
       <div class="pulse"></div>
-      <h2 class="big">You're caught up</h2>
+      <h2 id="caughtTitle" class="big">You're caught up</h2>
       <p id="caughtText" class="small"></p>
     </div>
   </main>

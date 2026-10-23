@@ -47,6 +47,7 @@
 
   function renderPost(m) {
     if (playingId && m.id && m.id !== playingId) return; // a late message for a post that's no longer playing (D-113)
+    starting = null;
     post = m;
     document.documentElement.style.setProperty("--scale", m.scale || 1);
     $("headline").textContent = m.headline || "";
@@ -200,6 +201,8 @@
   let caught = null;
   function renderCaught(m) {
     caught = m;
+    starting = null;
+    $("caughtTitle").textContent = "You're caught up";
     updateCaught();
     show("caught");
   }
@@ -215,16 +218,36 @@
     endCards = m.threads || [];
     selected = 0;
     $("endSub").textContent = endCards.length ? "Live on Spool now · choose on your phone, or press OK to play" : `${m.posts} posts · pick another thread on your phone`;
+    starting = null;
     drawCards();
     show("end");
+    document.body.focus(); // so the remote's first press goes to the board (D-115)
   }
+  /**
+   * D-115: OK (or a tap) on the end board. The phone has to load the thread and voice its first post
+   * before the TV has anything to play, which takes a few seconds, so the page shows that at once and
+   * ignores more presses; if nothing comes in 30 s it goes back to the board.
+   */
+  let starting = null;
+  function startThread(t) {
+    if (starting) return;
+    starting = t.root;
+    $("caughtTitle").textContent = `Starting ${t.headline}`;
+    $("caughtText").textContent = `${t.author} · voicing the first post…`;
+    caught = null;
+    show("caught");
+    ask("play", { root: t.root });
+    clearTimeout(startThread.timer);
+    startThread.timer = setTimeout(() => { if (starting && screen === "caught") { starting = null; show("end"); } }, 30000);
+  }
+
   function drawCards() {
     const box = $("cards");
     box.replaceChildren();
     endCards.forEach((t, i) => {
       const c = el("div", "tc" + (i === selected ? " sel" : ""));
       c.append(el("div", "s" + (t.live ? " islive" : ""), t.live ? "● LIVE" : t.status.toUpperCase()), el("div", "t", t.headline), el("div", "w", `${t.author} · ${t.posts} posts`));
-      c.addEventListener("click", () => ask("play", { root: t.root }));
+      c.addEventListener("click", () => startThread(t));
       box.append(c);
     });
   }
@@ -239,7 +262,7 @@
     if (screen === "end" && endCards.length) {
       if (e.key === "ArrowRight") { selected = Math.min(selected + 1, endCards.length - 1); drawCards(); }
       else if (e.key === "ArrowLeft") { selected = Math.max(selected - 1, 0); drawCards(); }
-      else if (e.key === "Enter") ask("play", { root: endCards[selected].root });
+      else if (e.key === "Enter" || e.key === "Select" || e.key === "Accept") startThread(endCards[selected]);
     } else if (screen === "post") {
       if (e.key === "ArrowRight") ask("next");
       else if (e.key === "ArrowLeft") ask("previous");
