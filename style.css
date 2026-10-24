@@ -8,10 +8,14 @@
   --ground: #0E0F11; --surface: #1A1C20; --chip: #26282D; --rule: #3A3C41;
   --ink: #F2F2F0; --secondary: #9A9DA3; --tertiary: #C4C6CB; --upcoming: #8E9197;
   --accent: #5EEAD4; --highlight: rgba(94, 234, 212, .28); --live: #FF6B5E;
+  /* D-134: white on the pill needs the phone's light live red (4.6:1); #FF6B5E is for text on dark. */
+  --live-pill: #D93A2B;
   --display: "Bricolage Grotesque", sans-serif;
   --body: "Instrument Sans", sans-serif;
   --mono: "IBM Plex Mono", monospace;
   --scale: 1; /* TV text size, from the phone */
+  /* D-134: the smallest text on the page, readable from 10 feet: 2.2vh is 24 px at 1080p. It follows the TV text size. */
+  --min: calc(2.2vh * var(--scale));
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--ground); color: var(--ink); font-family: var(--body); overflow: hidden; }
@@ -19,23 +23,23 @@ html, body { margin: 0; height: 100%; background: var(--ground); color: var(--in
 body:focus { outline: none; }
 audio { display: none; }
 .screen { position: absolute; inset: 0; }
-.label { margin: 0; font: 500 1.9vh/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--secondary); }
+.label { margin: 0; font: 500 var(--min)/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--secondary); }
 
 /* Idle */
 .idle { display: grid; place-content: center; justify-items: center; gap: 3vh; }
 .wordmark-big { height: 12vh; }
-.hint { margin: 0; font-size: 2.6vh; color: var(--secondary); }
+.hint { margin: 0; font-size: calc(2.6vh * var(--scale)); color: var(--secondary); }
 
 /* Post: the main column and the side column (D-117) */
 .post { display: grid; grid-template-columns: minmax(0, 1fr) 34%; }
-.main { padding: 5.5vh 3.5vw 4.5vh 6vw; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 2.6vh; min-width: 0; min-height: 0; }
+.main { padding: 5.5vh 3.5vw 4.5vh 6vw; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: 2.6vh; min-width: 0; min-height: 0; }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 2vw; }
 .wordmark { height: 4.2vh; }
-.live { display: inline-flex; align-items: center; gap: 1vh; font: 600 2.1vh/1 var(--body); letter-spacing: .08em; color: #fff; background: var(--live); padding: 1vh 1.8vh; border-radius: 99px; }
+.live { display: inline-flex; align-items: center; gap: 1vh; font: 600 calc(2.3vh * var(--scale))/1 var(--body); letter-spacing: .08em; color: #fff; background: var(--live-pill); padding: 1vh 1.8vh; border-radius: 99px; }
 .live::before { content: ""; width: 1.1vh; height: 1.1vh; border-radius: 50%; background: #fff; }
 .head h1 { margin: 0; font: 700 calc(3.6vh * var(--scale))/1.2 var(--display); color: var(--tertiary); text-wrap: balance; }
-.meta { margin: 1.1vh 0 0; font: 400 2.3vh/1.3 var(--mono); color: var(--secondary); }
-.note { margin: 0; font-size: 2.4vh; line-height: 1.4; color: var(--ink); }
+.meta { margin: 1.1vh 0 0; font: 400 calc(2.3vh * var(--scale))/1.3 var(--mono); color: var(--secondary); }
+.note { margin: 0; font-size: calc(2.4vh * var(--scale)); line-height: 1.4; color: var(--ink); }
 
 .body { position: relative; overflow: hidden; min-height: 0; }
 .content { height: 100%; }
@@ -53,7 +57,7 @@ audio { display: none; }
 .info { display: grid; gap: 4vh; align-content: start; }
 .info section, .cardsSide, .stand { display: grid; gap: 1.6vh; }
 .stand { flex: none; }
-#glossary { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1.2vh 1.6vw; font-size: 2.3vh; line-height: 1.3; }
+#glossary { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1.2vh 1.6vw; font-size: calc(2.3vh * var(--scale)); line-height: 1.3; }
 #glossary dt { font-weight: 600; color: var(--secondary); }
 #glossary dd { margin: 0; color: var(--secondary); }
 #glossary .in { color: var(--ink); }
@@ -62,15 +66,19 @@ audio { display: none; }
 .post.withphoto { grid-template-columns: minmax(0, 1fr) 48%; }
 .post.withphoto .side { padding: 4vh 3vw; }
 .photo { margin: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: 1.6vh; }
-.photo img { width: 100%; min-height: 0; max-height: 100%; object-fit: contain; border-radius: 1.4vh; }
-.photo figcaption { font-size: 2vh; color: var(--secondary); line-height: 1.35; }
-.photo .more { margin: 0; font: 400 2vh/1 var(--mono); color: var(--secondary); }
+.photo img { width: 100%; min-height: 0; max-height: 100%; object-fit: contain; border-radius: 1.4vh; transition: box-shadow .25s ease; }
+.photo figcaption { font-size: var(--min); color: var(--secondary); line-height: 1.35; }
+.photo .more { margin: 0; font: 400 var(--min)/1 var(--mono); color: var(--secondary); }
 .side .card { background: var(--chip); }
-.card { background: var(--surface); border-radius: 1.6vh; padding: 2vh 2.2vh; display: grid; gap: 1vh; }
+.card { background: var(--surface); border-radius: 1.6vh; padding: 2vh 2.2vh; display: grid; gap: 1vh; box-shadow: 0 0 0 .4vh transparent; transition: box-shadow .25s ease, background-color .25s ease; }
 .card img { width: 100%; max-height: 22vh; object-fit: cover; border-radius: 1vh; }
-.card .t { font: 700 2.6vh/1.25 var(--display); }
-.card .d { font: 400 1.9vh/1 var(--mono); color: var(--secondary); }
-.card .q { font-size: 2.3vh; line-height: 1.4; color: var(--tertiary); display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.card .t { font: 700 calc(2.6vh * var(--scale))/1.25 var(--display); }
+.card .d { font: 400 var(--min)/1 var(--mono); color: var(--secondary); }
+.card .q { font-size: calc(2.3vh * var(--scale)); line-height: 1.4; color: var(--tertiary); display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+/* D-134: a link card, quoted post or photo is highlighted while the voice reads it, as the post's sentences are. */
+.card.now, .photo img.now { box-shadow: 0 0 0 .4vh var(--accent); }
+.card.now { background: #23302F; }
+.card.now .q { color: var(--ink); }
 
 .summary { display: grid; gap: 2vh; }
 .summary ul { margin: 0; padding-left: 3.4vh; display: grid; gap: 1.6vh; font: 600 calc(4.4vh * var(--scale))/1.35 var(--body); color: var(--upcoming); }
@@ -84,20 +92,27 @@ audio { display: none; }
 .bar i.p { background: var(--upcoming); }
 .bar i.c { background: var(--accent); height: 100%; }
 
-.behind { margin: 0; font: 600 2.4vh/1.35 var(--body); color: var(--live); }
+.behind { margin: 0; font: 600 calc(2.4vh * var(--scale))/1.35 var(--body); color: var(--live); }
 .behind.edge { color: var(--accent); }
 
-.toast { position: absolute; left: 33%; top: 4vh; transform: translateX(-50%); background: var(--ink); color: var(--ground); font: 600 2.3vh/1 var(--body); padding: 1.4vh 2.8vh; border-radius: 99px; }
-.paused { position: absolute; right: 37vw; bottom: 5vh; font: 600 2.4vh/1 var(--body); background: var(--chip); padding: 1.4vh 2.4vh; border-radius: 99px; }
-.touch { display: none; }
+.toast { position: absolute; left: 33%; top: 4vh; transform: translateX(-50%); background: var(--ink); color: var(--ground); font: 600 calc(2.3vh * var(--scale))/1 var(--body); padding: 1.4vh 2.8vh; border-radius: 99px; }
+.paused { position: absolute; right: 37vw; bottom: 5vh; font: 600 calc(2.4vh * var(--scale))/1 var(--body); background: var(--chip); padding: 1.4vh 2.4vh; border-radius: 99px; }
+/* D-134: only the button bar. The bare ".touch" rule also matched <body class="touch"> and blanked the page on a Nest Hub. */
+nav.touch { display: none; }
+.touchExtra { display: none; }
 
-/* Caught up */
-.center { display: grid; place-items: center; text-align: center; padding: 0 10vw; }
-.corner { position: absolute; left: 6vw; top: 5.5vh; height: 4.2vh; }
-.big { margin: 0; font: 700 7vh/1.15 var(--display); }
-.small { margin: 2vh 0 0; font-size: 3vh; color: var(--secondary); }
-.pulse { width: 3vh; height: 3vh; border-radius: 50%; background: var(--live); margin: 0 auto 3.4vh; box-shadow: 0 0 0 2vh rgba(255,107,94,.18); animation: pulse 1.6s ease-in-out infinite; }
-@keyframes pulse { 50% { box-shadow: 0 0 0 3.4vh rgba(255,107,94,0); } }
+/* Caught up (D-134): where things stand, the latest post dimmed, and another live thread */
+.caught { padding: 5.5vh 6vw 5.5vh; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 4.4vh; }
+.chead { display: grid; gap: 2.2vh; align-content: start; }
+.big { margin: 0; font: 700 calc(7.4vh * var(--scale))/1.15 var(--display); text-wrap: balance; }
+.small { margin: 0; font-size: calc(3.1vh * var(--scale)); line-height: 1.4; color: var(--secondary); }
+.cmore { display: grid; grid-template-columns: 1.3fr 1fr; gap: 3vw; align-content: start; min-height: 0; }
+.cmore.solo { grid-template-columns: minmax(0, 1fr); max-width: 70%; }
+.latest { background: var(--surface); border-radius: 2.6vh; padding: 3.4vh 3.6vh; display: grid; gap: 1.9vh; align-content: start; min-height: 0; overflow: hidden; }
+.ltext { margin: 0; font: 600 calc(3.9vh * var(--scale))/1.4 var(--body); color: var(--tertiary); display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.also { display: grid; gap: 2.2vh; align-content: start; }
+.alsoCards { display: grid; gap: 1.6vh; }
+.hint2 { margin: 0; font-size: calc(2.4vh * var(--scale)); color: var(--secondary); line-height: 1.3; }
 
 /* End board */
 .board { padding: 5.5vh 6vw; display: grid; grid-template-rows: auto auto 1fr; gap: 4vh; }
@@ -106,21 +121,33 @@ audio { display: none; }
   border: 0; color: inherit; font: inherit; text-align: left; align-content: start; cursor: pointer; }
 .tc:focus { outline-color: var(--accent); }
 .tc.sel { outline-color: var(--accent); }
-.tc .s { font: 600 2vh/1 var(--body); letter-spacing: .06em; color: var(--secondary); }
+.tc .s { font: 600 var(--min)/1 var(--body); letter-spacing: .06em; color: var(--secondary); }
 .tc .s.islive { color: var(--live); }
-.tc .t { font: 700 3.2vh/1.2 var(--display); }
-.tc .w { font-size: 2.2vh; color: var(--secondary); }
-.board .empty { margin: 0; font-size: 3vh; color: var(--secondary); }
+.tc .t { font: 700 calc(3.2vh * var(--scale))/1.2 var(--display); }
+.tc .w { font-size: var(--min); color: var(--secondary); }
+.board .empty { margin: 0; font-size: calc(3vh * var(--scale)); color: var(--secondary); }
 
 /* Touch screens (Nest Hub): no side column, buttons for the post. Set from the device's capabilities, not the
    viewport: TVs can report one as small as 960x540 (D-113). */
 body.touch .post { grid-template-columns: minmax(0, 1fr); }
 body.touch .side { display: none !important; }
-body.touch .main { padding: 4vh 5vw 15vh; }
+body.touch .main { padding: 4vh 5vw 15vh; gap: 2vh; }
 body.touch .text { font-size: calc(6vh * var(--scale)); }
-body.touch .touch { display: flex; position: absolute; left: 0; right: 0; bottom: 3vh; justify-content: center; gap: 8vw; }
-body.touch .touch button { background: none; border: 0; color: var(--ink); font-size: 6vh; width: 11vh; height: 11vh; border-radius: 50%; }
-body.touch .touch .pp { background: var(--accent); color: var(--ground); font-size: 4.4vh; }
+body.touch .text.small { font-size: calc(4.8vh * var(--scale)); }
+body.touch nav.touch { display: flex; position: absolute; left: 0; right: 0; bottom: 3vh; justify-content: center; gap: 8vw; }
+body.touch nav.touch button { background: none; border: 0; color: var(--ink); font-size: 6vh; width: 11vh; height: 11vh; border-radius: 50%; }
+body.touch nav.touch .pp { background: var(--accent); color: var(--ground); font-size: 4.4vh; }
+/* D-134: the photo as a thumbnail and one status line, under the text. */
+body.touch .touchExtra { display: flex; align-items: center; gap: 2.4vw; min-height: 0; }
+body.touch .touchExtra:has(.thumb[hidden]):has(.tstatus:empty) { display: none; }
+.thumb { height: 14vh; max-width: 30vw; object-fit: cover; border-radius: 1.4vh; flex: none; box-shadow: 0 0 0 .4vh transparent; transition: box-shadow .25s ease; }
+.thumb.now { box-shadow: 0 0 0 .4vh var(--accent); }
+.tstatus { margin: 0; font: 600 calc(2.8vh * var(--scale))/1.35 var(--body); color: var(--secondary); }
+.tstatus.behindlive { color: var(--live); }
+.tstatus.edge { color: var(--accent); }
 body.touch .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+body.touch .caught { padding: 4vh 5vw; gap: 3.4vh; }
 
-@media (prefers-reduced-motion: reduce) { .text .inner, .text .s, .pulse { transition: none; animation: none; } }
+/* Reduced motion: the phone's setting (D-132, sent with each message) or the TV's own. */
+body.still *, body.still *::before { transition: none !important; animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .text .inner, .text .s, .card, .photo img, .thumb { transition: none; animation: none; } }

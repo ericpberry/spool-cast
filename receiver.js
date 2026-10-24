@@ -3,7 +3,7 @@
 //   post     the post that's starting: text, sentence timings, headline, note, up next, behind live,
 //            the thread glossary, photos/link/quote, text scale, and whether it opens with the catch-up summary
 //   status   new posts arrived: total and behind live
-//   caughtUp at the live edge, waiting for the next post
+//   caughtUp at the live edge, waiting for the next post: where things stand, the latest post, another live thread
 //   end      a finished thread, with the listener's live threads to play next
 // and the page asks the phone for "play" (a thread from the end board), "next", "previous", "toggle".
 (() => {
@@ -31,6 +31,11 @@
   let endCards = [];
   let selected = 0;
   let screen = "idle";
+  let embeds = [];     // [{ el, start, end }]: the card or photo a sentence reads from (D-134)
+  let alsoCards = [];  // the live thread the caught-up screen offers (D-134)
+  const isTouch = () => document.body.classList.contains("touch");
+  /** The phone's reduced-motion setting (D-132): the page keeps still too. */
+  const still = (m) => { if (m && m.reducedMotion != null) document.body.classList.toggle("still", !!m.reducedMotion); };
 
   function show(name) {
     screen = name;
@@ -54,6 +59,7 @@
     if (playingId && m.id && m.id !== playingId) return; // a late message for a post that's no longer playing (D-113)
     starting = null;
     post = m;
+    still(m);
     document.documentElement.style.setProperty("--scale", m.scale || 1);
     $("headline").textContent = m.headline || "";
     meta(m.index, m.total);
@@ -91,8 +97,46 @@
     }
 
     renderSide(m);
-    renderBar(m.index, m.total);
+    renderTouch(m);
+    embeds = embedSpans(m);
+    renderBar($("bar"), m.index, m.total);
     show("post");
+  }
+
+  /**
+   * D-134: the sentences read from the post's photo, link card or quoted post, each tied to what it
+   * reads, so it's highlighted as it's read. "Quoting …" is the quote; "Photo…", "N photos" and "Video"
+   * the photo; anything else the link card.
+   */
+  function embedSpans(m) {
+    const quote = $("cardsSide").querySelector(".card.quote");
+    const link = $("cardsSide").querySelector(".card.link");
+    const out = [];
+    for (const s of (m.sentences || []).filter((s) => s.embed)) {
+      const say = s.say || "";
+      const visual = /^(Photo|Video|GIF|\w+ photos)/.test(say);
+      const target = /^Quoting/.test(say) ? quote : visual ? (isTouch() ? $("thumb") : $("photoImg")) : link;
+      if (target) out.push({ el: target, start: s.start, end: s.end });
+    }
+    return out;
+  }
+
+  /** D-134: on a touch display the side column is gone; a photo thumbnail and one status line stand in for it. */
+  function renderTouch(m) {
+    const images = m.images || [];
+    const thumb = $("thumb");
+    thumb.hidden = !images.length;
+    if (images.length) { thumb.src = images[0].url; thumb.alt = images[0].alt || ""; }
+    touchStatus(m.note, m.behindPosts, m.behindMinutes, m.live);
+  }
+
+  function touchStatus(note, posts, minutes, live) {
+    const t = $("touchStatus");
+    t.className = "tstatus";
+    if (note) t.textContent = `“${note}”`;
+    else if (posts > 0) { t.textContent = `${posts} post${posts === 1 ? "" : "s"} behind live${minutes > 0 ? ` · ~${minutes} min` : ""}`; t.classList.add("behindlive"); }
+    else if (live) { t.textContent = "At the live edge"; t.classList.add("edge"); }
+    else t.textContent = "";
   }
 
   function meta(index, total) {
@@ -125,13 +169,13 @@
     const cards = $("cardsSide");
     cards.replaceChildren();
     if (m.link) {
-      const card = el("div", "card");
+      const card = el("div", "card link");
       if (m.link.thumb) { const t = el("img"); t.src = m.link.thumb; t.alt = ""; card.append(t); }
       card.append(el("div", "t", m.link.title), el("div", "d", m.link.domain));
       cards.append(card);
     }
     if (m.quote) {
-      const card = el("div", "card");
+      const card = el("div", "card quote");
       card.append(el("div", "d", `Quoting ${m.quote.author}`), el("div", "q", m.quote.text));
       cards.append(card);
     }
@@ -150,8 +194,7 @@
   }
 
 
-  function renderBar(index, total) {
-    const bar = $("bar");
+  function renderBar(bar, index, total) {
     bar.replaceChildren();
     const ticks = Math.min(total, 24);
     const at = Math.floor(index / Math.max(total, 1) * ticks);
@@ -181,6 +224,8 @@
         s.el.classList.toggle("said", ms >= s.end + 200);
         if (isNow) current = s;
       }
+      for (const e of embeds) e.el.classList.remove("now");
+      for (const e of embeds) if (ms >= e.start && ms < e.end + 200) e.el.classList.add("now");
       if (current) {
         const box = $("text");
         const inner = box.firstChild;
@@ -194,18 +239,48 @@
 
   // ---- caught up and end ---------------------------------------------------------------------
 
+  /**
+   * D-134: waiting at the live edge (or through a quiet spell) is when the room looks up, so the screen
+   * says where things stand, shows the latest post dimmed, and offers another live thread for OK.
+   */
   let caught = null;
   function renderCaught(m) {
     caught = m;
     starting = null;
-    $("caughtTitle").textContent = "You're caught up";
+    still(m);
+    $("caughtLabel").textContent = "You're caught up";
+    $("caughtTitle").textContent = `Waiting for ${m.author}'s next post`;
+    $("caughtLive").hidden = !m.live;
+    $("caughtMore").hidden = false;
+    $("caughtBar").hidden = !m.total;
+    $("latest").hidden = !m.latest;
+    $("latestLabel").textContent = ["Latest", m.latestAt].filter(Boolean).join(" · ");
+    $("latestText").textContent = m.latest || "";
+    alsoCards = m.also || [];
+    $("also").hidden = !alsoCards.length;
+    $("caughtMore").classList.toggle("solo", !alsoCards.length);
+    const box = $("alsoCards");
+    box.replaceChildren();
+    for (const t of alsoCards) {
+      const c = el("button", "tc sel");
+      c.type = "button";
+      c.append(el("div", "s" + (t.live ? " islive" : ""), t.live ? "● LIVE" : t.status.toUpperCase()), el("div", "t", t.headline));
+      c.addEventListener("click", () => startThread(t));
+      box.append(c);
+    }
+    $("alsoHint").textContent = isTouch() ? "Tap to switch, or choose on your phone" : "Press OK to switch, or choose on your phone";
+    if (m.total) renderBar($("caughtBar"), m.total - 1, m.total);
     updateCaught();
     show("caught");
+    box.firstChild?.focus(); // OK presses it (D-116)
   }
   function updateCaught() {
     if (!caught) return;
     const mins = Math.max(0, Math.round((Date.now() - caught.lastPostAtMs) / 60000));
-    $("caughtText").textContent = `Waiting for ${caught.author}'s next post · last post ${mins < 1 ? "just now" : `${mins} min ago`}`;
+    const ago = mins < 1 ? "Last post just now" : mins < 120 ? `Last post ${mins} min ago` : `Last post ${Math.round(mins / 60)} hours ago`;
+    // The quoted status in the author's words, its first letter lowered to run on in the line ("court is in recess…").
+    const note = caught.note && (/^[A-Z][a-z]/.test(caught.note) ? caught.note[0].toLowerCase() + caught.note.slice(1) : caught.note);
+    $("caughtText").textContent = [ago, note, "the next post plays here"].filter(Boolean).join(" · ");
   }
   setInterval(updateCaught, 30000);
 
@@ -213,7 +288,10 @@
     $("endHead").textContent = ["End of thread", m.headline, m.note ? `“${m.note}”` : null].filter(Boolean).join(" · ");
     endCards = m.threads || [];
     selected = 0;
-    $("endSub").textContent = endCards.length ? "Live on Spool now · choose on your phone, or press OK to play" : `${m.posts} posts · pick another thread on your phone`;
+    still(m);
+    // The copy board (D-132): the cards can be quiet threads too, so "On Spool now"; touch screens are tapped.
+    $("endSub").textContent = !endCards.length ? `${m.posts} posts · pick another thread on your phone`
+      : isTouch() ? "On Spool now · Tap one to play" : "On Spool now · press OK to play, or choose on your phone";
     starting = null;
     show("end");
     drawCards(); // focuses the selected card (D-116)
@@ -227,13 +305,23 @@
   function startThread(t) {
     if (starting) return;
     starting = t.root;
-    $("caughtTitle").textContent = `Starting ${t.headline}`;
+    const from = screen;
+    const was = caught;
+    $("caughtLabel").textContent = "Starting";
+    $("caughtTitle").textContent = t.headline;
     $("caughtText").textContent = `${t.author} · voicing the first post…`;
+    $("caughtLive").hidden = !t.live;
+    $("caughtMore").hidden = true;
+    $("caughtBar").hidden = true;
     caught = null;
     show("caught");
     ask("play", { root: t.root });
     clearTimeout(startThread.timer);
-    startThread.timer = setTimeout(() => { if (starting && screen === "caught") { starting = null; show("end"); } }, 30000);
+    startThread.timer = setTimeout(() => {
+      if (!starting || screen !== "caught") return;
+      starting = null;
+      if (from === "caught" && was) renderCaught(was); else show("end");
+    }, 30000);
   }
 
   function drawCards() {
@@ -263,6 +351,8 @@
       if (e.key === "ArrowRight") { selected = Math.min(selected + 1, endCards.length - 1); drawCards(); e.preventDefault(); }
       else if (e.key === "ArrowLeft") { selected = Math.max(selected - 1, 0); drawCards(); e.preventDefault(); }
       else if (e.key === "Enter" || e.key === "Select" || e.key === "Accept") { startThread(endCards[selected]); e.preventDefault(); }
+    } else if (screen === "caught" && caught && alsoCards.length) {
+      if (e.key === "Enter" || e.key === "Select" || e.key === "Accept") { startThread(alsoCards[0]); e.preventDefault(); }
     } else if (screen === "post") {
       if (e.key === "ArrowRight") ask("next");
       else if (e.key === "ArrowLeft") ask("previous");
@@ -283,8 +373,9 @@
       if (!post) return;
       post.total = m.total;
       meta(post.index, m.total);
-      renderBar(post.index, m.total);
+      renderBar($("bar"), post.index, m.total);
       behind(m.behindPosts, m.behindMinutes, post.live);
+      touchStatus(post.note, m.behindPosts, m.behindMinutes, post.live);
       if (m.newPosts > 0 && m.behindPosts > 0 && screen === "post") toast(`${m.newPosts} new post${m.newPosts === 1 ? "" : "s"}`);
     } else if (m.type === "caughtUp") renderCaught(m);
     else if (m.type === "end") renderEnd(m);
@@ -315,7 +406,7 @@
     if (id && id !== playingId) {
       playingId = id;
       endedFor = null;
-      if (post && post.id !== id) { spans = []; points = []; $("text").replaceChildren(); $("photo").hidden = true; }
+      if (post && post.id !== id) { spans = []; points = []; embeds = []; $("text").replaceChildren(); $("photo").hidden = true; $("thumb").hidden = true; }
       ask("post", { post: id });
     }
   }
@@ -350,6 +441,9 @@
 
   function preview(state) {
     const sentences = (t, list) => { const out = []; let at = 0, ms = 0; for (const s of list) { const f = t.indexOf(s, at); out.push({ start: ms, end: ms + 2600, from: f, to: f + s.length }); at = f + s.length; ms += 2800; } return out; };
+    const params = new URLSearchParams(location.search);
+    if (state === "hub" || params.get("touch") === "1") document.body.classList.add("touch");
+    if (params.get("still") === "1") document.body.classList.add("still");
     const text = "PBS: I have to go, I have a whole afternoon of hearings. If you file by Wednesday, file by Wednesday. If you feel you can't respond, tell me. DM/KS: Understood. Hearing adjourned.";
     const base = {
       type: "post", headline: "First Circuit rules on mandatory detention for non-criminal aliens", author: "John Hawkinson",
@@ -361,11 +455,12 @@
     };
     const photoText = "Sketch from the courtroom: Gorsuch leaning in during the Solicitor General's rebuttal.";
     const photo = Object.assign({}, base, {
-      text: photoText, sentences: sentences(photoText, ["Sketch from the courtroom: Gorsuch leaning in during the Solicitor General's rebuttal."]), legend: [], note: null,
+      text: photoText, legend: [], note: null,
+      sentences: [...sentences(photoText, ["Sketch from the courtroom: Gorsuch leaning in during the Solicitor General's rebuttal."]), { start: 2800, end: 11000, say: "Photo: Pencil sketch of the justices on the bench.", embed: true }],
       images: [{ url: "data:image/svg+xml;utf8," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'><rect width='800' height='600' fill='#2c3a40'/><text x='400' y='310' fill='#9A9DA3' font-size='34' text-anchor='middle' font-family='monospace'>courtroom sketch</text></svg>"), alt: "Pencil sketch of the justices on the bench" }],
     });
     const linkText = "The Globe's story on today's ruling is up.";
-    const link = Object.assign({}, base, { text: linkText, sentences: sentences(linkText, [linkText]), legend: [], note: null, link: { title: "Judge orders new hearings for detained immigrants", domain: "bostonglobe.com" }, quote: { author: "Chris Geidner", text: "This is the third ruling this month to reach the same conclusion on the detention policy." } });
+    const link = Object.assign({}, base, { text: linkText, sentences: [...sentences(linkText, [linkText]), { start: 2800, end: 6800, say: "A Boston Globe link: Judge orders new hearings for detained immigrants.", embed: true }, { start: 7000, end: 11800, say: "Quoting Chris Geidner: This is the third ruling this month.", embed: true }], legend: [], note: null, link: { title: "Judge orders new hearings for detained immigrants", domain: "bostonglobe.com" }, quote: { author: "Chris Geidner", text: "This is the third ruling this month to reach the same conclusion on the detention policy." } });
     const summary = Object.assign({}, base, {
       summary: true, legend: [],
       sentences: [{ start: 0, end: 2600, say: "The judge denied the government's motion to stay her order." }, { start: 2800, end: 5400, say: "Both sides must file briefs by Wednesday on the scope of relief." }, { start: 5600, end: 8200, say: "The hearing adjourned; the clerk's notes followed at 3:46 PM." }, ...sentences(text, ["PBS: I have to go, I have a whole afternoon of hearings."]).map((s) => ({ ...s, start: 8400, end: 11000 }))],
@@ -375,13 +470,16 @@
       { root: "b", headline: "City Council returns with livestream options", author: "John Hawkinson", posts: 37, status: "LIVE", live: true },
       { root: "c", headline: "Supreme Court hears arguments on tariff powers", author: "Molly Roberts", posts: 191, status: "Quiet 34 min", live: false },
     ] };
-    if (state === "hub") document.body.classList.add("touch");
     if (state === "post" || state === "hub") { onMessage(base); if (state === "post") setTimeout(() => toast("3 new posts"), 50); }
     else if (state === "photo") onMessage(photo);
     else if (state === "link") onMessage(link);
     else if (state === "summary") onMessage(summary);
-    else if (state === "caught") onMessage({ type: "caughtUp", author: "John Hawkinson", headline: base.headline, lastPostAtMs: Date.now() - 120000 });
+    else if (state === "caught") onMessage({ type: "caughtUp", author: "John Hawkinson", headline: base.headline, lastPostAtMs: Date.now() - 360000, live: true,
+      note: "Court is in recess until 2:15 PM", latest: "PBS: I have to go, I have a whole afternoon of hearings. If you file by Wednesday, file by Wednesday.", latestAt: "1:54 PM", total: 102,
+      also: [end.threads[0]] });
+    else if (state === "quiet") onMessage({ type: "caughtUp", author: "Molly Roberts", headline: "Supreme Court hears arguments on tariff powers", lastPostAtMs: Date.now() - 34 * 60000, live: false,
+      latest: "That's it for the morning session. Back after lunch.", latestAt: "12:31 PM", total: 191, also: [] });
     else if (state === "end") onMessage(end);
-    else if (state === "paused") { onMessage(base); $("paused").hidden = false; }
+    else if (state === "paused") { onMessage(base); setPaused(true); }
   }
 })();
