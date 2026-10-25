@@ -139,7 +139,8 @@ body.touch nav.touch button { background: none; border: 0; color: var(--ink); fo
 body.touch nav.touch .pp { background: var(--accent); color: var(--ground); font-size: 4.4vh; }
 /* D-134: the photo as a thumbnail and one status line, under the text. */
 body.touch .touchExtra { display: flex; align-items: center; gap: 2.4vw; min-height: 0; }
-body.touch .touchExtra:has(.thumb[hidden]):has(.tstatus:empty) { display: none; }
+/* D-135: set by the script, not with :has(), which older Cast firmware doesn't support. */
+body.touch .touchExtra.empty { display: none; }
 .thumb { height: 14vh; max-width: 30vw; object-fit: cover; border-radius: 1.4vh; flex: none; box-shadow: 0 0 0 .4vh transparent; transition: box-shadow .25s ease; }
 .thumb.now { box-shadow: 0 0 0 .4vh var(--accent); }
 .tstatus { margin: 0; font: 600 calc(2.8vh * var(--scale))/1.35 var(--body); color: var(--secondary); }

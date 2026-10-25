@@ -137,6 +137,8 @@
     else if (posts > 0) { t.textContent = `${posts} post${posts === 1 ? "" : "s"} behind live${minutes > 0 ? ` · ~${minutes} min` : ""}`; t.classList.add("behindlive"); }
     else if (live) { t.textContent = "At the live edge"; t.classList.add("edge"); }
     else t.textContent = "";
+    // D-135: with no photo and no status line, the row takes no room (a class, since older Cast firmware lacks :has()).
+    $("touchExtra").classList.toggle("empty", $("thumb").hidden && !t.textContent);
   }
 
   function meta(index, total) {
