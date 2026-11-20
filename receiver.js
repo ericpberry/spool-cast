@@ -1,5 +1,5 @@
-// Spool's Cast receiver (D-107, D-112). Plays each post's audio from the phone and draws the thread the
-// way Spool would. The phone sends messages on Spool's channel (shapes in core/cast/TvMessages.kt):
+// Live Threads' Cast receiver (D-107, D-112, D-159). Plays each post's audio from the phone and draws the thread the
+// way the app would. The phone sends messages on the app's channel (shapes in core/cast/TvMessages.kt):
 //   post     the post that's starting: text, sentence timings, headline, note, up next, behind live,
 //            the thread glossary, photos/link/quote, text scale, and whether it opens with the catch-up summary
 //   status   new posts arrived: total and behind live
@@ -42,7 +42,7 @@
     for (const id of ["idle", "post", "caught", "end"]) $(id).hidden = id !== name;
   }
 
-  // D-120: the phone is the sender that last spoke on Spool's channel. The page answers only it, so
+  // D-120: the phone is the sender that last spoke on the app's channel. The page answers only it, so
   // another device that joins the session doesn't hear what's playing; until the phone has spoken
   // (or if it's gone), every sender.
   let phone = null;
@@ -291,9 +291,9 @@
     endCards = m.threads || [];
     selected = 0;
     still(m);
-    // The copy board (D-132): the cards can be quiet threads too, so "On Spool now"; touch screens are tapped.
+    // The copy board (D-132): the cards can be quiet threads too, so "On now" (D-156: no app name in sentences); touch screens are tapped.
     $("endSub").textContent = !endCards.length ? `${m.posts} posts · pick another thread on your phone`
-      : isTouch() ? "On Spool now · Tap one to play" : "On Spool now · press OK to play, or choose on your phone";
+      : isTouch() ? "On now · Tap one to play" : "On now · press OK to play, or choose on your phone";
     starting = null;
     show("end");
     drawCards(); // focuses the selected card (D-116)

@@ -1,7 +1,7 @@
 # spool-cast
 
-The Cast receiver page for Spool, an Android app that reads live Bluesky threads aloud. When Spool
-casts to a TV, the TV loads this page; the phone sends it each post and plays the audio from the
-phone over the home network. Nothing else is stored or fetched here.
+The Cast receiver page for Live Threads, an Android app by Vedi Apps that reads live Bluesky threads
+aloud. When Live Threads casts to a TV, the TV loads this page; the phone sends it each post and plays
+the audio from the phone over the home network. Nothing else is stored or fetched here.
 
-Published from the Spool app's source (commit 91eb137); changes made here are overwritten.
+Published from the app's source (commit 1780ada); changes made here are overwritten.
