@@ -4,4 +4,4 @@ The Cast receiver page for Live Threads, an Android app by Vedi Apps that reads 
 aloud. When Live Threads casts to a TV, the TV loads this page; the phone sends it each post and plays
 the audio from the phone over the home network. Nothing else is stored or fetched here.
 
-Published from the app's source (commit 1780ada); changes made here are overwritten.
+Published from the app's source (commit 5ad9f2f); changes made here are overwritten.

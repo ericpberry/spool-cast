@@ -472,6 +472,21 @@
       { root: "b", headline: "City Council returns with livestream options", author: "John Hawkinson", posts: 37, status: "LIVE", live: true },
       { root: "c", headline: "Supreme Court hears arguments on tariff powers", author: "Molly Roberts", posts: 191, status: "Quiet 34 min", live: false },
     ] };
+    if (params.get("demo") === "1") {
+      // Invented content for store and site pictures (Q-248): no real person, post or case. scripts/demo_threads.py has
+      // the same made-up threads for the phone.
+      const demoText = "Councilmember Ortiz proposes moving the café to the second floor so the children's corner can stay where it is. The amendment passes 6 to 1.";
+      Object.assign(base, {
+        headline: "Harbor City council votes on the waterfront library", author: "Nora Whitfield", index: 5, total: 8,
+        postedAt: "7:42 PM", note: "Short recess before the final vote", text: demoText, behindPosts: 3, behindMinutes: 4, glossary: [],
+        sentences: sentences(demoText, ["Councilmember Ortiz proposes moving the café to the second floor so the children's corner can stay where it is.", "The amendment passes 6 to 1."]),
+      });
+      end.headline = base.headline;
+      end.threads = [
+        { root: "a", headline: "Lakeside Marathon: two runners break away", author: "Sam Okoro", posts: 6, status: "Quiet 34 min", live: false },
+        { root: "b", headline: "Northfield Book Prize: the winners", author: "Lena Marsh", posts: 6, status: "Ended 3 h ago", live: false },
+      ];
+    }
     if (state === "post" || state === "hub") { onMessage(base); if (state === "post") setTimeout(() => toast("3 new posts"), 50); }
     else if (state === "photo") onMessage(photo);
     else if (state === "link") onMessage(link);
